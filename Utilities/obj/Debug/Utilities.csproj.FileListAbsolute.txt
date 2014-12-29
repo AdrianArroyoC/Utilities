@@ -1,0 +1,6 @@
+c:\users\adrián\documents\visual studio 2013\Projects\Utilities\Utilities\bin\Debug\Utilities.dll
+c:\users\adrián\documents\visual studio 2013\Projects\Utilities\Utilities\bin\Debug\Utilities.pdb
+c:\users\adrián\documents\visual studio 2013\Projects\Utilities\Utilities\bin\Debug\FirebirdSql.Data.FirebirdClient.dll
+c:\users\adrián\documents\visual studio 2013\Projects\Utilities\Utilities\obj\Debug\Utilities.csprojResolveAssemblyReference.cache
+c:\users\adrián\documents\visual studio 2013\Projects\Utilities\Utilities\obj\Debug\Utilities.dll
+c:\users\adrián\documents\visual studio 2013\Projects\Utilities\Utilities\obj\Debug\Utilities.pdb

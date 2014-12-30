@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
+using System.Data;
 //using System.Data.OracleClient;
 using Oracle.DataAccess.Client;
 using FirebirdSql.Data.FirebirdClient;
@@ -70,6 +71,41 @@ namespace Utilities
                     connection.Close();
                     FbConnection.ClearPool(connection);
                 }
+            }
+            catch (Exception error)
+            {
+                MessageBox.Show(error.Message);
+            }
+        }
+
+        public static DataTable oracleData(string ip, string service, string user, string pass, string instruction)
+        {
+            DataTable dt = new DataTable();
+            try
+            {
+                OracleConnection conn = connectOracle(ip, service, user, pass);
+                //OracleCommand cmd = new OracleCommand(instruction, conn);
+                OracleDataAdapter adapter = new OracleDataAdapter();
+                adapter.SelectCommand = new OracleCommand(instruction, conn);
+                //OracleDataReader reader = cmd.ExecuteReader();
+                adapter.Fill(dt);
+                closeOracle(conn);
+            }
+            catch (Exception error)
+            {
+                MessageBox.Show(error.Message);
+            }
+            return dt;
+        }
+
+        public static void oraStatement(string ip, string service, string user, string pass, string instruction) //times
+        {
+            try
+            {
+                OracleConnection conn = connectOracle(ip, service, user, pass);
+                OracleCommand cmd = new OracleCommand(instruction, conn);
+                cmd.ExecuteNonQuery();
+                closeOracle(conn);
             }
             catch (Exception error)
             {

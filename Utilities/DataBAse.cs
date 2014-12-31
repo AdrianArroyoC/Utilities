@@ -13,13 +13,29 @@ namespace Utilities
 {
     public class DataBase
     {
-        public static OracleConnection connectOracle(string ip, string service, string user, string pass)
+        //public string[] connectionValues = new string[4] { "user", "pass", "serv", "dir" };
+
+        public static String connectionString(string[] connectionValues, bool db = false)
+        {
+            string sql = "";
+            if (db == true)
+            {
+                sql = "Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=" + connectionValues[3] + ")(PORT=1521))(CONNECT_DATA=(SERVICE_NAME="
+                    + connectionValues[2] + ")));User Id=" + connectionValues[0] + ";Password=" + connectionValues[1];
+            }
+            else
+            {
+                sql = "user=" + connectionValues[0] + "; password=" + connectionValues[1] + "; database=" + connectionValues[3] + "; datasource= " +connectionValues[2] +";";
+            }
+            return sql;
+        }
+
+        public static OracleConnection connectOracle(string[] connectionValues)
         {
             try
             {
-                string connectionString = "Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=" + ip + ")(PORT=1521))(CONNECT_DATA=(SERVICE_NAME="
-                    + service + ")));User Id=" + user + ";Password=" + pass;
-                OracleConnection remoteConnection = new OracleConnection(connectionString);
+                string oracleString = connectionString(connectionValues, true);
+                OracleConnection remoteConnection = new OracleConnection(oracleString);
                 remoteConnection.Open();
                 return remoteConnection;
             }
@@ -46,12 +62,12 @@ namespace Utilities
             }
         }
 
-        public static FbConnection connectFirebird(string user, string pass, string database, string datasource)
+        public static FbConnection connectFirebird(string[] connectionValues)
         {
             try
             {
-                string connectionString = @"user=" + user + "; pass=" + pass + "; database=" + database + "; datasource=" + datasource + ";";
-                FbConnection remoteConnection = new FbConnection(connectionString);
+                string firebirdString = connectionString(connectionValues);
+                FbConnection remoteConnection = new FbConnection(firebirdString);
                 remoteConnection.Open();
                 return remoteConnection;
             }
@@ -78,12 +94,12 @@ namespace Utilities
             }
         }
 
-        public static DataTable oracleData(string ip, string service, string user, string pass, string instruction)
+        public static DataTable oracleData(string[] connectionValues, string instruction)
         {
             DataTable dt = new DataTable();
             try
             {
-                OracleConnection conn = connectOracle(ip, service, user, pass);
+                OracleConnection conn = connectOracle(connectionValues);
                 //OracleCommand cmd = new OracleCommand(instruction, conn);
                 OracleDataAdapter adapter = new OracleDataAdapter();
                 adapter.SelectCommand = new OracleCommand(instruction, conn);
@@ -98,11 +114,11 @@ namespace Utilities
             return dt;
         }
 
-        public static void oraStatement(string ip, string service, string user, string pass, string instruction) //times
+        public static void oraStatement(string[] connectionValues, string instruction) //times
         {
             try
             {
-                OracleConnection conn = connectOracle(ip, service, user, pass);
+                OracleConnection conn = connectOracle(connectionValues);
                 OracleCommand cmd = new OracleCommand(instruction, conn);
                 cmd.ExecuteNonQuery();
                 closeOracle(conn);
@@ -113,5 +129,137 @@ namespace Utilities
             }
         }
 
+        public static DataTable fbData(string[] connectionValues, string instruction)
+        {
+            DataTable dt = new DataTable();
+            try
+            {
+                FbConnection conn = connectFirebird(connectionValues);
+                FbDataAdapter adapter = new FbDataAdapter();
+                adapter.SelectCommand = new FbCommand(instruction, conn);
+                adapter.Fill(dt);
+                closeFirebird(conn);
+            }
+            catch (Exception error)
+            {
+                MessageBox.Show(error.Message);
+            }
+            return dt;
+        }
+
+        public static void fbStatement(string[] connectionValues, string instruction) //times
+        {
+            try
+            {
+                FbConnection conn = connectFirebird(connectionValues);
+                FbCommand cmd = new FbCommand(instruction, conn);
+                cmd.ExecuteNonQuery();
+                closeFirebird(conn);
+            }
+            catch (Exception error)
+            {
+                MessageBox.Show(error.Message);
+            }
+        }
+
+        public static OracleDataReader oraReader(OracleConnection conn, string instruction)
+        {
+            OracleDataReader reader = null;
+            try
+            {
+                //OracleConnection conn = connectOracle(connectionValues);
+                OracleCommand cmd = conn.CreateCommand();
+                cmd.CommandText = instruction;
+                reader = cmd.ExecuteReader();
+            }
+            catch (Exception error)
+            {
+                MessageBox.Show(error.Message);
+            }
+            return (reader);
+        }
+
+        public static FbDataReader fbReader(FbConnection conn, string instruction)
+        {
+            FbDataReader reader = null;
+            try
+            {
+                //OracleConnection conn = connectOracle(connectionValues);
+                FbCommand cmd = conn.CreateCommand();
+                cmd.CommandText = instruction;
+                reader = cmd.ExecuteReader();
+            }
+            catch (Exception error)
+            {
+                MessageBox.Show(error.Message);
+            }
+            return (reader);
+        }
     }
+
+    public class nextsNumbers : DataBase
+    {
+        public static Int32 nextId (string[] connectionValues, string instruction, bool db = false) //
+        {
+            Int32 id = 0;
+            try
+            {
+                if (db == true)
+                {
+                    OracleConnection conn = connectOracle(connectionValues);
+                    OracleDataReader reader = oraReader(conn, instruction);
+                    reader.Read();
+                    id = reader.GetInt32(0);
+                    closeOracle(conn);
+                }
+                else
+                {
+                    FbConnection conn = connectFirebird(connectionValues);
+                    FbDataReader reader = fbReader(conn, instruction);
+                    reader.Read();
+                    id = reader.GetInt32(0);
+                    closeFirebird(conn);
+                }
+                id++;
+            }
+            catch (Exception error)
+            {
+                MessageBox.Show(error.Message);
+            }
+            return id;
+        }
+
+        public static String nextFolio(string[] connectionValues, string instruction, bool db = false) //
+        {
+            string folio = "";
+            DataTable dt = null;
+            try
+            {
+                if (db == true)
+                {
+                    dt = oracleData(connectionValues, instruction);
+                }
+                else
+                {
+                    dt = fbData(connectionValues, instruction);
+                }
+                dt.Columns.Add("folios");
+                foreach (DataRow dtRow in dt.Rows)
+                {
+                    dtRow["folios"] = Convert.ToInt32(dtRow["folios"]);
+                }
+                DataView view = new DataView(dt);
+                view.Sort = "folios Desc";
+                dt.Clear();
+                dt = view.Table;
+                folio = dt.Rows[0].ToString();
+            }
+            catch (Exception error)
+            {
+                MessageBox.Show(error.Message);
+            }
+            return folio;
+        }
+    }
+
 }

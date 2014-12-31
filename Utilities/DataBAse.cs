@@ -13,6 +13,8 @@ namespace Utilities
 {
     public class DataBase
     {
+        /*Parameters for te connection if db == true { serv = oracle service name; dir = oracle host (ip) } 
+            else {serv = firebird datasource (server); dir = firebird database (file)}*/
         //public string[] connectionValues = new string[4] { "user", "pass", "serv", "dir" };
 
         public static String connectionString(string[] connectionValues, bool db = false)
@@ -46,7 +48,7 @@ namespace Utilities
             }
         }
 
-        public static void closeOracle(OracleConnection connection) //OracleDataReader dr //Si abrieramos 
+        public static void closeOracle(OracleConnection connection) 
         {
             try
             {
@@ -78,7 +80,7 @@ namespace Utilities
             }
         }
 
-        public static void closeFirebird(FbConnection connection) //Pudiera ir reader
+        public static void closeFirebird(FbConnection connection) 
         {
             try
             {
@@ -94,16 +96,14 @@ namespace Utilities
             }
         }
 
-        public static DataTable oracleData(string[] connectionValues, string instruction)
+        public static DataTable oracleData(string[] connectionValues, string instruction) //Oracle select
         {
             DataTable dt = new DataTable();
             try
             {
                 OracleConnection conn = connectOracle(connectionValues);
-                //OracleCommand cmd = new OracleCommand(instruction, conn);
                 OracleDataAdapter adapter = new OracleDataAdapter();
                 adapter.SelectCommand = new OracleCommand(instruction, conn);
-                //OracleDataReader reader = cmd.ExecuteReader();
                 adapter.Fill(dt);
                 closeOracle(conn);
             }
@@ -114,7 +114,7 @@ namespace Utilities
             return dt;
         }
 
-        public static void oraStatement(string[] connectionValues, string instruction) //times
+        public static void oraStatement(string[] connectionValues, string instruction) //Oracle update, insert or delete
         {
             try
             {
@@ -129,7 +129,7 @@ namespace Utilities
             }
         }
 
-        public static DataTable fbData(string[] connectionValues, string instruction)
+        public static DataTable fbData(string[] connectionValues, string instruction) //Firebird select
         {
             DataTable dt = new DataTable();
             try
@@ -147,7 +147,7 @@ namespace Utilities
             return dt;
         }
 
-        public static void fbStatement(string[] connectionValues, string instruction) //times
+        public static void fbStatement(string[] connectionValues, string instruction) //Firebird insert, update or delete
         {
             try
             {
@@ -167,7 +167,6 @@ namespace Utilities
             OracleDataReader reader = null;
             try
             {
-                //OracleConnection conn = connectOracle(connectionValues);
                 OracleCommand cmd = conn.CreateCommand();
                 cmd.CommandText = instruction;
                 reader = cmd.ExecuteReader();
@@ -179,12 +178,11 @@ namespace Utilities
             return (reader);
         }
 
-        public static FbDataReader fbReader(FbConnection conn, string instruction)
+        public static FbDataReader fbReader(FbConnection conn, string instruction) 
         {
             FbDataReader reader = null;
             try
             {
-                //OracleConnection conn = connectOracle(connectionValues);
                 FbCommand cmd = conn.CreateCommand();
                 cmd.CommandText = instruction;
                 reader = cmd.ExecuteReader();
@@ -199,7 +197,8 @@ namespace Utilities
 
     public class nextsNumbers : DataBase
     {
-        public static Int32 nextId (string[] connectionValues, string instruction, bool db = false) //
+        //Get the next number by a sql query
+        public static Int32 nextId (string[] connectionValues, string instruction, bool db = false) 
         {
             Int32 id = 0;
             try
@@ -229,7 +228,8 @@ namespace Utilities
             return id;
         }
 
-        public static String nextFolio(string[] connectionValues, string instruction, bool db = false) //
+        //When the sql querys returns string and you want to know the next number 
+        public static String nextFolio(string[] connectionValues, string instruction, bool db = false)
         {
             string folio = "";
             DataTable dt = null;

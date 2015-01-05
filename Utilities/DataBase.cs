@@ -255,6 +255,7 @@ namespace Utilities
                 folio = dt.Rows[0].ToString();
             }
             catch (Exception error)
+
             {
                 MessageBox.Show(error.Message);
             }

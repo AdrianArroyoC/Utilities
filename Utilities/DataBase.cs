@@ -114,11 +114,14 @@ namespace Utilities
             return dt;
         }
 
-        public static void oraStatement(string[] connectionValues, string instruction) //Oracle update, insert or delete
+        public static void oraStatement(string instruction, string[] connectionValues = null, OracleConnection conn = null) //Oracle update, insert or delete
         {
             try
             {
-                OracleConnection conn = connectOracle(connectionValues);
+                if (conn == null)
+                {
+                    conn = connectOracle(connectionValues);
+                }
                 OracleCommand cmd = new OracleCommand(instruction, conn);
                 cmd.ExecuteNonQuery();
                 closeOracle(conn);
@@ -147,11 +150,14 @@ namespace Utilities
             return dt;
         }
 
-        public static void fbStatement(string[] connectionValues, string instruction) //Firebird insert, update or delete
+        public static void fbStatement(string instruction, string[] connectionValues = null, FbConnection conn = null) //Firebird insert, update or delete
         {
             try
             {
-                FbConnection conn = connectFirebird(connectionValues);
+                if (conn == null)
+                {
+                    conn = connectFirebird(connectionValues);
+                }
                 FbCommand cmd = new FbCommand(instruction, conn);
                 cmd.ExecuteNonQuery();
                 closeFirebird(conn);

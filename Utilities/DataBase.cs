@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using System.Data;
-//using System.Data.OracleClient;
 using Oracle.DataAccess.Client;
 using FirebirdSql.Data.FirebirdClient;
 

@@ -10,6 +10,22 @@ using FirebirdSql.Data.FirebirdClient;
 
 namespace Utilities
 {
+    public class Utils
+    {
+        public static Boolean confirmationBox(string message, string title)
+        {
+            bool confirm = false;
+            DialogResult result = MessageBox.Show(message, title, MessageBoxButtons.YesNo, MessageBoxIcon.Exclamation, MessageBoxDefaultButton.Button2);
+            if (result == DialogResult.Yes)
+            {
+                confirm = true;
+            }
+            return confirm;
+        }
+
+        //
+    }
+
     public class DataBase
     {
         /*Parameters for te connection if db == true { serv = oracle service name; dir = oracle host (ip) } 
@@ -26,7 +42,7 @@ namespace Utilities
             }
             else
             {
-                sql = "user=" + connectionValues[0] + "; password=" + connectionValues[1] + "; database=" + connectionValues[3] + "; datasource= " +connectionValues[2] +";";
+                sql = "user=" + connectionValues[0] + "; password=" + connectionValues[1] + "; database=" + connectionValues[3] + "; datasource= " + connectionValues[2] + ";";
             }
             return sql;
         }
@@ -47,7 +63,7 @@ namespace Utilities
             }
         }
 
-        public static void closeOracle(OracleConnection connection) 
+        public static void closeOracle(OracleConnection connection)
         {
             try
             {
@@ -79,7 +95,7 @@ namespace Utilities
             }
         }
 
-        public static void closeFirebird(FbConnection connection) 
+        public static void closeFirebird(FbConnection connection)
         {
             try
             {
@@ -183,7 +199,7 @@ namespace Utilities
             return (reader);
         }
 
-        public static FbDataReader fbReader(FbConnection conn, string instruction) 
+        public static FbDataReader fbReader(FbConnection conn, string instruction)
         {
             FbDataReader reader = null;
             try
@@ -267,5 +283,4 @@ namespace Utilities
             return folio;
         }
     }
-
 }

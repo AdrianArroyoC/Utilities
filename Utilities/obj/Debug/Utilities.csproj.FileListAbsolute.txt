@@ -3,4 +3,4 @@ c:\users\adrián\documents\visual studio 2013\Projects\Utilities\Utilities\bin\D
 c:\users\adrián\documents\visual studio 2013\Projects\Utilities\Utilities\bin\Debug\FirebirdSql.Data.FirebirdClient.dll
 c:\users\adrián\documents\visual studio 2013\Projects\Utilities\Utilities\obj\Debug\Utilities.dll
 c:\users\adrián\documents\visual studio 2013\Projects\Utilities\Utilities\obj\Debug\Utilities.pdb
-C:\Users\Adrián\Documents\Visual Studio 2013\Projects\Utilities\Utilities\bin\Debug\Oracle.DataAccess.dll
+C:\Users\Adrián\Documents\Visual Studio 2013\Projects\Utilities\Utilities\obj\Debug\Utilities.csprojResolveAssemblyReference.cache

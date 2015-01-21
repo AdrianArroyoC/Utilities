@@ -319,26 +319,56 @@ namespace Utilities
     public class configIni : fileIni
     {
         //Añadir para leer varios e insertar varios
-        public static String readConfig (string file, string section, string key, string path = "")
+        public static String readConfigValue(string file, string section, string key, string path = "")
         {
             string value = "";
-            StringBuilder cantidad = new StringBuilder();
+            StringBuilder val = new StringBuilder();
             if (File.Exists(@path + @file))
             {
                 GetPrivateProfileString(section,
                                              key,
                                              "",
-                                             cantidad,
-                                             cantidad.Capacity,
+                                             val,
+                                             val.Capacity,
                                              file);
-                value = cantidad.ToString();
+                value = val.ToString();
             }
             return value;
         }
 
-        public static void writeConfig (string file, string section, string value, string key, string path ="")
+        public static String[] readConfigValues(string file, string[,] sectionsKeys, string path = "")
+        {
+            string[] values = new string[sectionsKeys.GetLength(2)];
+            StringBuilder value;
+            if (File.Exists(@path + @file))
+            {
+                for(int i = 0; i < sectionsKeys.GetLength(2); i++)
+                {
+                    value = new StringBuilder();
+                    GetPrivateProfileString(sectionsKeys[i,0],
+                                                 sectionsKeys[i, 1],
+                                                 "",
+                                                 value,
+                                                 value.Capacity,
+                                                 file);
+                    values[i] = value.ToString();
+                }
+            }
+            return values;
+        }
+
+        public static void writeConfigValue (string file, string section, string value, string key, string path ="")
         {
             WritePrivateProfileString(section, key, value, @path + @file); 
+        }
+
+        public static void writeConfigValues(string file, string[,] sectionsKeysValues, string path = "")
+        {
+            for (int i = 0; i < sectionsKeysValues.GetLength(0); i++)
+            {
+                WritePrivateProfileString(sectionsKeysValues[i, 0], sectionsKeysValues[i, 1], sectionsKeysValues[i, 2], @path + @file);
+            }
+            
         }
     }
 }

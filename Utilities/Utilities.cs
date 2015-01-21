@@ -6,11 +6,13 @@ using System.Windows.Forms;
 using System.Data;
 using Oracle.DataAccess.Client;
 using FirebirdSql.Data.FirebirdClient;
-
+using System.IO;
+using System.Runtime.InteropServices;
+using System.Diagnostics;
 
 namespace Utilities
 {
-    public class Utils
+    public class utils
     {
         public static Boolean confirmationBox(string message, string title)
         {
@@ -22,11 +24,10 @@ namespace Utilities
             }
             return confirm;
         }
-
         //
     }
 
-    public class DataBase
+    public class dataBase
     {
         /*Parameters for te connection if db == true { serv = oracle service name; dir = oracle host (ip) } 
             else {serv = firebird datasource (server); dir = firebird database (file)}*/
@@ -216,7 +217,7 @@ namespace Utilities
         }
     }
 
-    public class nextsNumbers : DataBase
+    public class nextsNumbers : dataBase
     {
         //Get the next number by a sql query
         public static Int32 nextId (string[] connectionValues, string instruction, bool db = false) 
@@ -282,5 +283,54 @@ namespace Utilities
             }
             return folio;
         }
+    }
+
+    public class logs
+    {
+        public static void Log(string file, string line = "", string path = "", int lines = 0, string[] text = null)
+        {
+            StreamWriter w = File.AppendText(@path + @file);
+            w.Write("\r\nLog : ");
+            w.WriteLine(DateTime.Now.ToLongTimeString(), DateTime.Now.ToLongDateString());
+            if (lines != 0 && text != null)
+            {
+                for (int i = 0; i < lines; i++)
+                {
+                    w.WriteLine(" [Información] :-->" + text[i]);
+                }
+            }
+            else
+            {
+                w.WriteLine(" [Información] :-->" + line);
+            }
+            w.WriteLine ("-------------------------------");
+        }
+    }
+
+    private class fileIni
+    {
+        [DllImport("kernel32")]
+        public static extern int GetPrivateProfileString(string section, string key, string def, StringBuilder retVal, int size, string filePath);
+    }
+
+    public class configIni : fileIni
+    {
+        public static String readValue (string file, string section, string key, string path = "")
+        {
+            string value = "";
+            StringBuilder cantidad = new StringBuilder();
+            if (File.Exists(@path + @file))
+            {
+                GetPrivateProfileString(section,
+                                             key,
+                                             "",
+                                             cantidad,
+                                             cantidad.Capacity,
+                                             file);
+                value = cantidad.ToString();
+            }
+            return value;
+        }
+        
     }
 }

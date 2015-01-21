@@ -10,6 +10,8 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Diagnostics;
 
+//añadir comentarios
+
 namespace Utilities
 {
     public class utils
@@ -287,7 +289,7 @@ namespace Utilities
 
     public class logs
     {
-        public static void Log(string file, string line = "", string path = "", int lines = 0, string[] text = null)
+        public static void logWrite(string file, string line = "", string path = "", int lines = 0, string[] text = null)
         {
             StreamWriter w = File.AppendText(@path + @file);
             w.Write("\r\nLog : ");
@@ -311,11 +313,13 @@ namespace Utilities
     {
         [DllImport("kernel32")]
         public static extern int GetPrivateProfileString(string section, string key, string def, StringBuilder retVal, int size, string filePath);
+        public static extern long WritePrivateProfileString(string section, string key, string val, string filePath);
     }
 
     public class configIni : fileIni
     {
-        public static String readValue (string file, string section, string key, string path = "")
+        //Añadir para leer varios e insertar varios
+        public static String readConfig (string file, string section, string key, string path = "")
         {
             string value = "";
             StringBuilder cantidad = new StringBuilder();
@@ -331,6 +335,10 @@ namespace Utilities
             }
             return value;
         }
-        
+
+        public static void writeConfig (string file, string section, string value, string key, string path ="")
+        {
+            WritePrivateProfileString(section, key, value, @path + @file); 
+        }
     }
 }

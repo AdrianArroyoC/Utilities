@@ -10,8 +10,6 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Diagnostics;
 
-//añadir comentarios
-
 namespace Utilities
 {
     public class utils
@@ -26,7 +24,6 @@ namespace Utilities
             }
             return confirm;
         }
-        //
     }
 
     public class dataBase
@@ -289,86 +286,132 @@ namespace Utilities
 
     public class logs
     {
-        public static void logWrite(string file, string line = "", string path = "", int lines = 0, string[] text = null)
+        //A method to write in a txt file a log of events you can add just one line or a lot of with an array
+        public static void logWrite(string file, string line = "", string path = "", string[] text = null)
         {
-            StreamWriter w = File.AppendText(@path + @file);
-            w.Write("\r\nLog : ");
-            w.WriteLine(DateTime.Now.ToLongTimeString(), DateTime.Now.ToLongDateString());
-            if (lines != 0 && text != null)
+            try 
             {
-                for (int i = 0; i < lines; i++)
+                if (!File.Exists(@path + @file))
                 {
-                    w.WriteLine(" [Información] :-->" + text[i]);
+                    File.Create(@path + @file);
                 }
+                StreamWriter w = File.AppendText(@path + @file);
+                w.Write("\r\nLog : ");
+                w.WriteLine(DateTime.Now.ToLongTimeString(), DateTime.Now.ToLongDateString());
+                if (text != null)
+                {
+                    for (int i = 0; i < text.Length; i++)
+                    {
+                        w.WriteLine(" [Información] :-->" + text[i]);
+                    }
+                }
+                else
+                {
+                    w.WriteLine(" [Información] :-->" + line);
+                }
+                w.WriteLine("-------------------------------");
             }
-            else
+            catch (Exception e)
             {
-                w.WriteLine(" [Información] :-->" + line);
+                MessageBox.Show(e.Message);
             }
-            w.WriteLine ("-------------------------------");
+            
         }
     }
 
-    private class fileIni
+    public class fileIni
     {
         [DllImport("kernel32")]
         public static extern int GetPrivateProfileString(string section, string key, string def, StringBuilder retVal, int size, string filePath);
+        [DllImport("kernel32")]
         public static extern long WritePrivateProfileString(string section, string key, string val, string filePath);
     }
 
     public class configIni : fileIni
     {
-        //Añadir para leer varios e insertar varios
+        //This class edits and read the .ini files one by one
         public static String readConfigValue(string file, string section, string key, string path = "")
         {
             string value = "";
             StringBuilder val = new StringBuilder();
-            if (File.Exists(@path + @file))
+            try
             {
-                GetPrivateProfileString(section,
-                                             key,
-                                             "",
-                                             val,
-                                             val.Capacity,
-                                             file);
-                value = val.ToString();
+                if (File.Exists(@path + @file))
+                {
+                    GetPrivateProfileString(section,
+                                                 key,
+                                                 "",
+                                                 val,
+                                                 val.Capacity,
+                                                 file);
+                    value = val.ToString();
+                }
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show(e.Message);
             }
             return value;
         }
 
+        public static void writeConfigValue (string file, string section, string value, string key, string path ="")
+        {
+            try
+            {
+                WritePrivateProfileString(section, key, value, @path + @file); 
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show(e.Message);
+            }
+        }
+    }
+
+    
+    public class configIniTest : fileIni
+    {
+        //This class test the edit and read of the .ini files for diferentes values
         public static String[] readConfigValues(string file, string[,] sectionsKeys, string path = "")
         {
             string[] values = new string[sectionsKeys.GetLength(2)];
             StringBuilder value;
-            if (File.Exists(@path + @file))
+            try
             {
-                for(int i = 0; i < sectionsKeys.GetLength(2); i++)
+                if (File.Exists(@path + @file))
                 {
-                    value = new StringBuilder();
-                    GetPrivateProfileString(sectionsKeys[i,0],
-                                                 sectionsKeys[i, 1],
-                                                 "",
-                                                 value,
-                                                 value.Capacity,
-                                                 file);
-                    values[i] = value.ToString();
+                    for (int i = 0; i < sectionsKeys.GetLength(2); i++)
+                    {
+                        value = new StringBuilder();
+                        GetPrivateProfileString(sectionsKeys[i, 0],
+                                                     sectionsKeys[i, 1],
+                                                     "",
+                                                     value,
+                                                     value.Capacity,
+                                                     file);
+                        values[i] = value.ToString();
+                    }
                 }
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show(e.Message);
             }
             return values;
         }
 
-        public static void writeConfigValue (string file, string section, string value, string key, string path ="")
-        {
-            WritePrivateProfileString(section, key, value, @path + @file); 
-        }
-
         public static void writeConfigValues(string file, string[,] sectionsKeysValues, string path = "")
         {
-            for (int i = 0; i < sectionsKeysValues.GetLength(0); i++)
+            try
             {
-                WritePrivateProfileString(sectionsKeysValues[i, 0], sectionsKeysValues[i, 1], sectionsKeysValues[i, 2], @path + @file);
+                for (int i = 0; i < sectionsKeysValues.GetLength(0); i++)
+                {
+                    WritePrivateProfileString(sectionsKeysValues[i, 0], sectionsKeysValues[i, 1], sectionsKeysValues[i, 2], @path + @file);
+                }
             }
-            
+            catch (Exception e)
+            {
+                MessageBox.Show(e.Message);
+            }
         }
     }
 }

@@ -9,6 +9,9 @@ using FirebirdSql.Data.FirebirdClient;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Diagnostics;
+using System.ComponentModel;
+
+
 
 namespace Utilities
 {
@@ -319,31 +322,23 @@ namespace Utilities
         }
     }
 
-    public class fileIni
+    public class iniData
     {
-        [DllImport("kernel32")]
-        public static extern int GetPrivateProfileString(string section, string key, string def, StringBuilder retVal, int size, string filePath);
-        [DllImport("kernel32")]
-        public static extern long WritePrivateProfileString(string section, string key, string val, string filePath);
-    }
-
-    public class configIni : fileIni
-    {
+        [DllImport("kernel32", CharSet = CharSet.Auto)]
+        private static extern long WritePrivateProfileString(string section, string key, string val, string filePath);
+        [DllImport("kernel32", CharSet = CharSet.Auto)]
+        private static extern int GetPrivateProfileString(string section, string key, string def, StringBuilder retVal, int size, string filePath);
+    
         //This class edits and read the .ini files one by one
         public static String readConfigValue(string file, string section, string key, string path = "")
         {
             string value = "";
-            StringBuilder val = new StringBuilder();
+            StringBuilder val = new StringBuilder(255);
             try
             {
                 if (File.Exists(@path + @file))
                 {
-                    GetPrivateProfileString(section,
-                                                 key,
-                                                 "",
-                                                 val,
-                                                 val.Capacity,
-                                                 file);
+                    int i = GetPrivateProfileString(section, key, "", val, 255, @path + @file);
                     value = val.ToString();
                 }
             }
@@ -365,29 +360,19 @@ namespace Utilities
                 MessageBox.Show(e.Message);
             }
         }
-    }
 
-    
-    public class configIniTest : fileIni
-    {
-        //This class test the edit and read of the .ini files for diferentes values
+        //This functions test the edit and read of the .ini files for diferentes values
         public static String[] readConfigValues(string file, string[,] sectionsKeys, string path = "")
         {
-            string[] values = new string[sectionsKeys.GetLength(2)];
-            StringBuilder value;
+            string[] values = new string[sectionsKeys.GetLength(0)];
             try
             {
                 if (File.Exists(@path + @file))
                 {
-                    for (int i = 0; i < sectionsKeys.GetLength(2); i++)
+                    for (int i = 0; i < sectionsKeys.GetLength(0); i++)
                     {
-                        value = new StringBuilder();
-                        GetPrivateProfileString(sectionsKeys[i, 0],
-                                                     sectionsKeys[i, 1],
-                                                     "",
-                                                     value,
-                                                     value.Capacity,
-                                                     file);
+                        StringBuilder value = new StringBuilder(255);
+                        int j = GetPrivateProfileString(sectionsKeys[i, 0], sectionsKeys[i, 1], "", value, 255, @path + @file);
                         values[i] = value.ToString();
                     }
                 }
@@ -414,4 +399,5 @@ namespace Utilities
             }
         }
     }
+    
 }

@@ -27,6 +27,12 @@ namespace Utilities
             }
             return confirm;
         }
+
+        public static DialogResult continueBox(string message, string title)
+        {
+            DialogResult result = MessageBox.Show(message, title, MessageBoxButtons.OKCancel, MessageBoxIcon.Exclamation, MessageBoxDefaultButton.Button2);
+            return result;
+        }
     }
 
     public class dataBase

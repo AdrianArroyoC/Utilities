@@ -10,29 +10,18 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Diagnostics;
 using System.ComponentModel;
-
-
+using Microsoft.VisualBasic; //InputBox
 
 namespace Utilities
 {
     public class utils
     {
-        public static Boolean confirmationBox(string message, string title)
-        {
-            bool confirm = false;
-            DialogResult result = MessageBox.Show(message, title, MessageBoxButtons.YesNo, MessageBoxIcon.Exclamation, MessageBoxDefaultButton.Button2);
-            if (result == DialogResult.Yes)
-            {
-                confirm = true;
-            }
-            return confirm;
-        }
-
         public static DialogResult continueBox(string message, string title)
         {
-            DialogResult result = MessageBox.Show(message, title, MessageBoxButtons.OKCancel, MessageBoxIcon.Exclamation, MessageBoxDefaultButton.Button2);
+            DialogResult result = MessageBox.Show(message, title, MessageBoxButtons.YesNo, MessageBoxIcon.Exclamation, MessageBoxDefaultButton.Button2);
             return result;
         }
+
     }
 
     public class dataBase
@@ -228,7 +217,7 @@ namespace Utilities
     public class nextsNumbers : dataBase
     {
         //Get the next number by a sql query
-        public static Int32 nextId (string[] connectionValues, string instruction, bool db = false) 
+        public static int nextId (string[] connectionValues, string instruction, bool db = false) 
         {
             Int32 id = 0;
             try

@@ -22,6 +22,11 @@ namespace Utilities
             return result;
         }
 
+        public static string inputBox(string message, string title, string def)
+        {
+            string text = Microsoft.VisualBasic.Interaction.InputBox(message, title, def);
+            return text;
+        }
     }
 
     public class dataBase
@@ -219,7 +224,7 @@ namespace Utilities
         //Get the next number by a sql query
         public static int nextId (string[] connectionValues, string instruction, bool db = false) 
         {
-            Int32 id = 0;
+            int id = 0;
             try
             {
                 if (db == true)
@@ -227,7 +232,7 @@ namespace Utilities
                     OracleConnection conn = connectOracle(connectionValues);
                     OracleDataReader reader = oraReader(conn, instruction);
                     reader.Read();
-                    id = reader.GetInt32(0);
+                    id = Convert.ToInt32(reader.GetValue(0));
                     closeOracle(conn);
                 }
                 else
@@ -235,7 +240,7 @@ namespace Utilities
                     FbConnection conn = connectFirebird(connectionValues);
                     FbDataReader reader = fbReader(conn, instruction);
                     reader.Read();
-                    id = reader.GetInt32(0);
+                    id = Convert.ToInt32(reader.GetValue(0));
                     closeFirebird(conn);
                 }
                 id++;
@@ -319,45 +324,39 @@ namespace Utilities
 
     public class iniData
     {
+        //[DllImport("kernel32", CharSet = CharSet.Auto)]
+        //private static extern long WritePrivateProfileString(string section, string key, string val, string filePath);
         [DllImport("kernel32", CharSet = CharSet.Auto)]
-        private static extern long WritePrivateProfileString(string section, string key, string val, string filePath);
-        [DllImport("kernel32", CharSet = CharSet.Auto)]
-        private static extern int GetPrivateProfileString(string section, string key, string def, StringBuilder retVal, int size, string filePath);
+        private static extern int GetPrivateProfileString(string section, string key, string def, string retVal, int size, string filePath);
     
         //This class edits and read the .ini files one by one
-        public static String readConfigValue(string file, string section, string key, string path = "")
+        public static String readConfigValue(string file, string section, string key, string path = "", string def = "")
         {
-            string value = "";
-            StringBuilder val = new StringBuilder(255);
+            int i = 0;
+            string value = new string(' ',255);
             try
             {
                 if (File.Exists(@path + @file))
                 {
-                    int i = GetPrivateProfileString(section, key, "", val, 255, @path + @file);
-                    value = val.ToString();
+                    i = GetPrivateProfileString(section, key, def, value, value.Length, @path + @file);
                 }
             }
             catch (Exception e)
             {
                 MessageBox.Show(e.Message);
             }
-            return value;
-        }
-
-        public static void writeConfigValue (string file, string section, string value, string key, string path ="")
-        {
-            try
+            if (i == 0)
             {
-                WritePrivateProfileString(section, key, value, @path + @file); 
+                return def;
             }
-            catch (Exception e)
+            else
             {
-                MessageBox.Show(e.Message);
+                return value.Substring(0, i);
             }
         }
 
         //This functions test the edit and read of the .ini files for diferentes values
-        public static String[] readConfigValues(string file, string[,] sectionsKeys, string path = "")
+        public static String[] readConfigValues(string file, string[,] sectionsKeys, string path = "", string def = "")
         {
             string[] values = new string[sectionsKeys.GetLength(0)];
             try
@@ -366,9 +365,17 @@ namespace Utilities
                 {
                     for (int i = 0; i < sectionsKeys.GetLength(0); i++)
                     {
-                        StringBuilder value = new StringBuilder(255);
-                        int j = GetPrivateProfileString(sectionsKeys[i, 0], sectionsKeys[i, 1], "", value, 255, @path + @file);
-                        values[i] = value.ToString();
+                        int j = 0;
+                        string value = new string(' ', 255);
+                        j = GetPrivateProfileString(sectionsKeys[i, 0], sectionsKeys[i, 1], def, value, value.Length, @path + @file);
+                        if (j == 0)
+                        {
+                            values[i] = def;
+                        }
+                        else 
+                        {
+                            values[i] = value.Substring(0,j);
+                        }
                     }
                 }
             }
@@ -378,21 +385,5 @@ namespace Utilities
             }
             return values;
         }
-
-        public static void writeConfigValues(string file, string[,] sectionsKeysValues, string path = "")
-        {
-            try
-            {
-                for (int i = 0; i < sectionsKeysValues.GetLength(0); i++)
-                {
-                    WritePrivateProfileString(sectionsKeysValues[i, 0], sectionsKeysValues[i, 1], sectionsKeysValues[i, 2], @path + @file);
-                }
-            }
-            catch (Exception e)
-            {
-                MessageBox.Show(e.Message);
-            }
-        }
     }
-    
 }

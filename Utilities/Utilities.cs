@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
-using System.Data;
+using data = System.Data;
 using Oracle.DataAccess.Client;
 using FirebirdSql.Data.FirebirdClient;
 using System.IO; //
@@ -11,7 +11,7 @@ using System.Runtime.InteropServices; //
 using System.Diagnostics;
 using System.ComponentModel;
 using Microsoft.VisualBasic;
-using Microsoft.Office.Interop.Excel;
+using excel = Microsoft.Office.Interop.Excel;
 
 namespace Utilities
 {
@@ -115,9 +115,9 @@ namespace Utilities
             }
         }
 
-        public static System.Data.DataTable oracleData(string[] connectionValues, string instruction) //Oracle select
+        public static data.DataTable oracleData(string[] connectionValues, string instruction) //Oracle select
         {
-            System.Data.DataTable dt = new System.Data.DataTable();
+            data.DataTable dt = new data.DataTable();
             try
             {
                 OracleConnection conn = connectOracle(connectionValues);
@@ -151,9 +151,9 @@ namespace Utilities
             }
         }
 
-        public static System.Data.DataTable fbData(string[] connectionValues, string instruction) //Firebird select
+        public static data.DataTable fbData(string[] connectionValues, string instruction) //Firebird select
         {
-            System.Data.DataTable dt = new System.Data.DataTable();
+            data.DataTable dt = new data.DataTable();
             try
             {
                 FbConnection conn = connectFirebird(connectionValues);
@@ -257,7 +257,7 @@ namespace Utilities
         public static String nextFolio(string[] connectionValues, string instruction, bool db = false)
         {
             string folio = "";
-            System.Data.DataTable dt = null;
+            data.DataTable dt = null;
             try
             {
                 if (db == true)
@@ -269,11 +269,11 @@ namespace Utilities
                     dt = fbData(connectionValues, instruction);
                 }
                 dt.Columns.Add("folios");
-                foreach (DataRow dtRow in dt.Rows)
+                foreach (data.DataRow dtRow in dt.Rows)
                 {
                     dtRow["folios"] = Convert.ToInt32(dtRow["folios"]);
                 }
-                DataView view = new DataView(dt);
+                data.DataView view = new data.DataView(dt);
                 view.Sort = "folios Desc";
                 dt.Clear();
                 dt = view.Table;
@@ -288,11 +288,35 @@ namespace Utilities
         }
     }
 
-    public class excel
+    public class excelWorksheet
     {
-        public class createExcelWorksheet
+        public excel.Application start()
         {
-
+            excel.Application xlApp = new excel.Application();
+            return xlApp;
         }
+
+        public bool verifyExcel(excel.Application xlApp)
+        {
+            if (xlApp == null)
+            {
+                MessageBox.Show("Necesitas instalar Excel");
+                return false;
+            }
+            return true;
+        }
+
+        public excel.Workbook createExcel(excel.Application xlApp)
+        {
+            object missVal = System.Reflection.Missing.Value;
+            if (verifyExcel(xlApp))
+            {
+                excel.Workbook xlWorkBook = xlApp.Workbooks.Add(missVal);
+                return xlWorkBook;
+            }
+            return null;
+        }
+
+        //
     }
 }

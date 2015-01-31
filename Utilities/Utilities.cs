@@ -6,11 +6,12 @@ using System.Windows.Forms;
 using System.Data;
 using Oracle.DataAccess.Client;
 using FirebirdSql.Data.FirebirdClient;
-using System.IO;
-using System.Runtime.InteropServices;
+using System.IO; //
+using System.Runtime.InteropServices; //
 using System.Diagnostics;
 using System.ComponentModel;
-using Microsoft.VisualBasic; //InputBox
+using Microsoft.VisualBasic;
+using Microsoft.Office.Interop.Excel;
 
 namespace Utilities
 {
@@ -114,9 +115,9 @@ namespace Utilities
             }
         }
 
-        public static DataTable oracleData(string[] connectionValues, string instruction) //Oracle select
+        public static System.Data.DataTable oracleData(string[] connectionValues, string instruction) //Oracle select
         {
-            DataTable dt = new DataTable();
+            System.Data.DataTable dt = new System.Data.DataTable();
             try
             {
                 OracleConnection conn = connectOracle(connectionValues);
@@ -150,9 +151,9 @@ namespace Utilities
             }
         }
 
-        public static DataTable fbData(string[] connectionValues, string instruction) //Firebird select
+        public static System.Data.DataTable fbData(string[] connectionValues, string instruction) //Firebird select
         {
-            DataTable dt = new DataTable();
+            System.Data.DataTable dt = new System.Data.DataTable();
             try
             {
                 FbConnection conn = connectFirebird(connectionValues);
@@ -256,7 +257,7 @@ namespace Utilities
         public static String nextFolio(string[] connectionValues, string instruction, bool db = false)
         {
             string folio = "";
-            DataTable dt = null;
+            System.Data.DataTable dt = null;
             try
             {
                 if (db == true)
@@ -287,103 +288,11 @@ namespace Utilities
         }
     }
 
-    public class logs
+    public class excel
     {
-        //A method to write in a txt file a log of events you can add just one line or a lot of with an array
-        public static void logWrite(string file, string line = "", string path = "", string[] text = null)
+        public class createExcelWorksheet
         {
-            try 
-            {
-                if (!File.Exists(@path + @file))
-                {
-                    File.Create(@path + @file);
-                }
-                StreamWriter w = File.AppendText(@path + @file);
-                w.Write("\r\nLog : ");
-                w.WriteLine(DateTime.Now.ToLongTimeString(), DateTime.Now.ToLongDateString());
-                if (text != null)
-                {
-                    for (int i = 0; i < text.Length; i++)
-                    {
-                        w.WriteLine(" [Información] :-->" + text[i]);
-                    }
-                }
-                else
-                {
-                    w.WriteLine(" [Información] :-->" + line);
-                }
-                w.WriteLine("-------------------------------");
-            }
-            catch (Exception e)
-            {
-                MessageBox.Show(e.Message);
-            }
-            
-        }
-    }
 
-    public class iniData
-    {
-        //[DllImport("kernel32", CharSet = CharSet.Auto)]
-        //private static extern long WritePrivateProfileString(string section, string key, string val, string filePath);
-        [DllImport("kernel32", CharSet = CharSet.Auto)]
-        private static extern int GetPrivateProfileString(string section, string key, string def, string retVal, int size, string filePath);
-    
-        //This class edits and read the .ini files one by one
-        public static String readConfigValue(string file, string section, string key, string path = "", string def = "")
-        {
-            int i = 0;
-            string value = new string(' ',255);
-            try
-            {
-                if (File.Exists(@path + @file))
-                {
-                    i = GetPrivateProfileString(section, key, def, value, value.Length, @path + @file);
-                }
-            }
-            catch (Exception e)
-            {
-                MessageBox.Show(e.Message);
-            }
-            if (i == 0)
-            {
-                return def;
-            }
-            else
-            {
-                return value.Substring(0, i);
-            }
-        }
-
-        //This functions test the edit and read of the .ini files for diferentes values
-        public static String[] readConfigValues(string file, string[,] sectionsKeys, string path = "", string def = "")
-        {
-            string[] values = new string[sectionsKeys.GetLength(0)];
-            try
-            {
-                if (File.Exists(@path + @file))
-                {
-                    for (int i = 0; i < sectionsKeys.GetLength(0); i++)
-                    {
-                        int j = 0;
-                        string value = new string(' ', 255);
-                        j = GetPrivateProfileString(sectionsKeys[i, 0], sectionsKeys[i, 1], def, value, value.Length, @path + @file);
-                        if (j == 0)
-                        {
-                            values[i] = def;
-                        }
-                        else 
-                        {
-                            values[i] = value.Substring(0,j);
-                        }
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                MessageBox.Show(e.Message);
-            }
-            return values;
         }
     }
 }

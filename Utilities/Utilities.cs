@@ -290,13 +290,15 @@ namespace Utilities
 
     public class excelWorksheet
     {
-        public excel.Application start()
+        public static object missVal = System.Reflection.Missing.Value;
+
+        public static excel.Application start()
         {
             excel.Application xlApp = new excel.Application();
             return xlApp;
         }
 
-        public bool verifyExcel(excel.Application xlApp)
+        public static bool verifyExcel(excel.Application xlApp)
         {
             if (xlApp == null)
             {
@@ -306,17 +308,30 @@ namespace Utilities
             return true;
         }
 
-        public excel.Workbook createExcel(excel.Application xlApp)
+        public static excel.Workbook createExcel(excel.Application xlApp)
         {
-            object missVal = System.Reflection.Missing.Value;
             if (verifyExcel(xlApp))
             {
                 excel.Workbook xlWorkBook = xlApp.Workbooks.Add(missVal);
+                xlApp.Visible = true;
                 return xlWorkBook;
             }
             return null;
         }
 
-        //
+        public static excel.Worksheet createWoorkSheet(excel.Application xlApp, excel.Workbook xlWorkBook, data.DataTable dt = null, string[] columns = null, DataGridView dgv = null)
+        {
+            excel.Worksheet xlWorkSheet = new excel.Worksheet();
+            xlWorkSheet = (excel.Worksheet)xlWorkBook.Sheets[1];
+            //
+            xlWorkSheet.Activate();
+            xlWorkBook.Saved = false;
+            return xlWorkSheet;
+        }
+
+        public static void fillExcel (excel.Worksheet xlWorkSheet, data.DataTable dt = null, string[] columns = null, DataGridView dgv = null)
+        {
+
+        }
     }
 }

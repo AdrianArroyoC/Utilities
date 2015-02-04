@@ -323,15 +323,38 @@ namespace Utilities
         {
             excel.Worksheet xlWorkSheet = new excel.Worksheet();
             xlWorkSheet = (excel.Worksheet)xlWorkBook.Sheets[1];
-            //
+            fillExcel(xlWorkSheet, dt, dgv);
             xlWorkSheet.Activate();
             xlWorkBook.Saved = false;
             return xlWorkSheet;
         }
 
-        public static void fillExcel (excel.Worksheet xlWorkSheet, data.DataTable dt = null, string[] columns = null, DataGridView dgv = null)
+        public static void fillExcel (excel.Worksheet xlWorkSheet, data.DataTable dt = null, DataGridView dgv = null)
         {
-
+            if (dt == null)
+            {
+               foreach(DataGridViewColumn column in dgv.Columns)
+               {
+                   data.DataColumn col = new data.DataColumn(column.Name);
+                   dt.Columns.Add(col);
+               }
+                foreach(DataGridViewRow row in dgv.Rows)
+                {
+                    data.DataRow dr = dt.NewRow();
+                    for (int i = 0; i < dgv.ColumnCount; i++)
+                    {
+                        dr[i] = row.Cells[i].Value.ToString();
+                    }
+                    dt.Rows.Add(dr);
+                }
+            }
+            for (int i = 0; i < dt.Rows.Count; i++)
+            {
+                for (int j = 0; j < dt.Columns.Count; j++)
+                {
+                    //
+                }
+            }
         }
     }
 }

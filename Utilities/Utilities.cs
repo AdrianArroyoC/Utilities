@@ -116,7 +116,7 @@ namespace Utilities
             }
         }
 
-        public static data.DataTable oracleData(string instruction, OracleConnection conn = null, string[] connectionValues = null) //Oracle select
+        public static data.DataTable oracleData(string instruction, bool close, OracleConnection conn = null, string[] connectionValues = null) //Oracle select
         {
             data.DataTable dt = new data.DataTable();
             try
@@ -128,7 +128,10 @@ namespace Utilities
                 OracleDataAdapter adapter = new OracleDataAdapter();
                 adapter.SelectCommand = new OracleCommand(instruction, conn);
                 adapter.Fill(dt);
-                closeOracle(conn);
+                if (close == true)
+                {
+                    closeOracle(conn);
+                }
             }
             catch (Exception error)
             {
@@ -137,7 +140,7 @@ namespace Utilities
             return dt;
         }
 
-        public static void oraStatement(string instruction, OracleConnection conn = null, string[] connectionValues = null) //Oracle update, insert or delete
+        public static void oraStatement(string instruction, bool close, OracleConnection conn = null, string[] connectionValues = null) //Oracle update, insert or delete
         {
             try
             {
@@ -147,7 +150,10 @@ namespace Utilities
                 }
                 OracleCommand cmd = new OracleCommand(instruction, conn);
                 cmd.ExecuteNonQuery();
-                closeOracle(conn);
+                if (close == true)
+                {
+                    closeOracle(conn);
+                }
             }
             catch (Exception error)
             {
@@ -155,7 +161,7 @@ namespace Utilities
             }
         }
 
-        public static data.DataTable fbData(string instruction, FbConnection conn = null, string[] connectionValues = null) //Firebird select
+        public static data.DataTable fbData(string instruction, bool close, FbConnection conn = null, string[] connectionValues = null) //Firebird select
         {
             data.DataTable dt = new data.DataTable();
             try
@@ -167,7 +173,10 @@ namespace Utilities
                 FbDataAdapter adapter = new FbDataAdapter();
                 adapter.SelectCommand = new FbCommand(instruction, conn);
                 adapter.Fill(dt);
-                closeFirebird(conn);
+                if (close == true)
+                {
+                    closeFirebird(conn);
+                }
             }
             catch (Exception error)
             {
@@ -176,7 +185,7 @@ namespace Utilities
             return dt;
         }
 
-        public static void fbStatement(string instruction, FbConnection conn = null, string[] connectionValues = null) //Firebird insert, update or delete
+        public static void fbStatement(string instruction, bool close, FbConnection conn = null, string[] connectionValues = null) //Firebird insert, update or delete
         {
             try
             {
@@ -186,7 +195,10 @@ namespace Utilities
                 }
                 FbCommand cmd = new FbCommand(instruction, conn);
                 cmd.ExecuteNonQuery();
-                closeFirebird(conn);
+                if (close == true)
+                {
+                    closeFirebird(conn);
+                }
             }
             catch (Exception error)
             {
@@ -238,7 +250,7 @@ namespace Utilities
     public class nextsNumbers : dataBase
     {
         //Get the next number by a sql query
-        public static int oraNextId (string instruction, OracleConnection conn = null, string[] connectionValues = null) 
+        public static int oraNextId (string instruction, bool close, OracleConnection conn = null, string[] connectionValues = null) 
         {
             int id = 0;
             try
@@ -250,7 +262,10 @@ namespace Utilities
                 OracleDataReader reader = oraReader(instruction, conn);
                 reader.Read();
                 id = Convert.ToInt32(reader.GetValue(0));
-                closeOracle(conn);
+                if (close == true)
+                {
+                    closeOracle(conn);
+                }
                 id++;
             }
             catch (Exception error)
@@ -260,7 +275,7 @@ namespace Utilities
             return id;
         }
 
-        public static int fbNextId(string instruction, string[] connectionValues = null, FbConnection conn = null)
+        public static int fbNextId(string instruction, bool close, string[] connectionValues = null, FbConnection conn = null)
         {
             int id = 0;
             try
@@ -272,7 +287,10 @@ namespace Utilities
                 FbDataReader reader = fbReader(instruction, conn);
                 reader.Read();
                 id = Convert.ToInt32(reader.GetValue(0));
-                closeFirebird(conn);
+                if (close == true)
+                {
+                    closeFirebird(conn);
+                }
                 id++;
             }
             catch (Exception error)
@@ -282,7 +300,7 @@ namespace Utilities
             return id;
         }
         //When the sql querys returns string and you want to know the next number 
-        public static String oraNextFolio(string instruction, OracleConnection conn = null, string[] connectionValues = null)
+        public static String oraNextFolio(string instruction, bool close, OracleConnection conn = null, string[] connectionValues = null)
         {
             string folio = "";
             try
@@ -291,7 +309,7 @@ namespace Utilities
                 {
                     conn = connectOracle(connectionValues);
                 }
-                folio = sortedDt(oracleData(instruction, conn));
+                folio = sortedDt(oracleData(instruction, close, conn));
             }
             catch (Exception error)
             {
@@ -300,7 +318,7 @@ namespace Utilities
             return folio;
         }
 
-        public static String fbNextFolio( string instruction, FbConnection conn = null, string[] connectionValues = null)
+        public static String fbNextFolio( string instruction, bool close, FbConnection conn = null, string[] connectionValues = null)
         {
             string folio = "";
             try
@@ -309,7 +327,7 @@ namespace Utilities
                 {
                     conn = connectFirebird(connectionValues);
                 }
-                folio = sortedDt(fbData(instruction, conn));
+                folio = sortedDt(fbData(instruction, close, conn));
             }
             catch (Exception error)
             {

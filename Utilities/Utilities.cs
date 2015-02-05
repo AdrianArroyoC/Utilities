@@ -12,6 +12,7 @@ using System.Diagnostics;
 using System.ComponentModel;
 using Microsoft.VisualBasic;
 using excel = Microsoft.Office.Interop.Excel;
+using conf = System.Configuration;
 
 namespace Utilities
 {
@@ -23,7 +24,7 @@ namespace Utilities
             return result;
         }
 
-        public static string inputBox(string message, string title, string def)
+        public static String inputBox(string message, string title, string def)
         {
             string text = Microsoft.VisualBasic.Interaction.InputBox(message, title, def);
             return text;
@@ -115,12 +116,15 @@ namespace Utilities
             }
         }
 
-        public static data.DataTable oracleData(string[] connectionValues, string instruction) //Oracle select
+        public static data.DataTable oracleData(string instruction, OracleConnection conn = null, string[] connectionValues = null) //Oracle select
         {
             data.DataTable dt = new data.DataTable();
             try
             {
-                OracleConnection conn = connectOracle(connectionValues);
+                if (conn == null)
+                {
+                    conn = connectOracle(connectionValues);
+                }
                 OracleDataAdapter adapter = new OracleDataAdapter();
                 adapter.SelectCommand = new OracleCommand(instruction, conn);
                 adapter.Fill(dt);
@@ -133,7 +137,7 @@ namespace Utilities
             return dt;
         }
 
-        public static void oraStatement(string instruction, string[] connectionValues = null, OracleConnection conn = null) //Oracle update, insert or delete
+        public static void oraStatement(string instruction, OracleConnection conn = null, string[] connectionValues = null) //Oracle update, insert or delete
         {
             try
             {
@@ -151,12 +155,15 @@ namespace Utilities
             }
         }
 
-        public static data.DataTable fbData(string[] connectionValues, string instruction) //Firebird select
+        public static data.DataTable fbData(string instruction, FbConnection conn = null, string[] connectionValues = null) //Firebird select
         {
             data.DataTable dt = new data.DataTable();
             try
             {
-                FbConnection conn = connectFirebird(connectionValues);
+                if (conn == null)
+                {
+                    conn = connectFirebird(connectionValues);    
+                }
                 FbDataAdapter adapter = new FbDataAdapter();
                 adapter.SelectCommand = new FbCommand(instruction, conn);
                 adapter.Fill(dt);
@@ -169,7 +176,7 @@ namespace Utilities
             return dt;
         }
 
-        public static void fbStatement(string instruction, string[] connectionValues = null, FbConnection conn = null) //Firebird insert, update or delete
+        public static void fbStatement(string instruction, FbConnection conn = null, string[] connectionValues = null) //Firebird insert, update or delete
         {
             try
             {
@@ -187,11 +194,15 @@ namespace Utilities
             }
         }
 
-        public static OracleDataReader oraReader(OracleConnection conn, string instruction)
+        public static OracleDataReader oraReader(string instruction, OracleConnection conn = null, string[] connectionValues = null)
         {
             OracleDataReader reader = null;
             try
             {
+                if (conn == null)
+                {
+                    conn = connectOracle(connectionValues);
+                }
                 OracleCommand cmd = conn.CreateCommand();
                 cmd.CommandText = instruction;
                 reader = cmd.ExecuteReader();
@@ -203,11 +214,15 @@ namespace Utilities
             return (reader);
         }
 
-        public static FbDataReader fbReader(FbConnection conn, string instruction)
+        public static FbDataReader fbReader(string instruction, FbConnection conn = null, string[] connectionValues = null)
         {
             FbDataReader reader = null;
             try
             {
+                if (conn == null)
+                {
+                    conn = connectFirebird(connectionValues);
+                }
                 FbCommand cmd = conn.CreateCommand();
                 cmd.CommandText = instruction;
                 reader = cmd.ExecuteReader();
@@ -223,27 +238,19 @@ namespace Utilities
     public class nextsNumbers : dataBase
     {
         //Get the next number by a sql query
-        public static int nextId (string[] connectionValues, string instruction, bool db = false) 
+        public static int oraNextId (string instruction, OracleConnection conn = null, string[] connectionValues = null) 
         {
             int id = 0;
             try
             {
-                if (db == true)
+                if (conn == null)
                 {
-                    OracleConnection conn = connectOracle(connectionValues);
-                    OracleDataReader reader = oraReader(conn, instruction);
-                    reader.Read();
-                    id = Convert.ToInt32(reader.GetValue(0));
-                    closeOracle(conn);
+                    conn = connectOracle(connectionValues);
                 }
-                else
-                {
-                    FbConnection conn = connectFirebird(connectionValues);
-                    FbDataReader reader = fbReader(conn, instruction);
-                    reader.Read();
-                    id = Convert.ToInt32(reader.GetValue(0));
-                    closeFirebird(conn);
-                }
+                OracleDataReader reader = oraReader(instruction, conn);
+                reader.Read();
+                id = Convert.ToInt32(reader.GetValue(0));
+                closeOracle(conn);
                 id++;
             }
             catch (Exception error)
@@ -253,37 +260,77 @@ namespace Utilities
             return id;
         }
 
-        //When the sql querys returns string and you want to know the next number 
-        public static String nextFolio(string[] connectionValues, string instruction, bool db = false)
+        public static int fbNextId(string instruction, string[] connectionValues = null, FbConnection conn = null)
         {
-            string folio = "";
-            data.DataTable dt = null;
+            int id = 0;
             try
             {
-                if (db == true)
+                if (conn == null)
                 {
-                    dt = oracleData(connectionValues, instruction);
+                    conn = connectFirebird(connectionValues);
                 }
-                else
-                {
-                    dt = fbData(connectionValues, instruction);
-                }
-                dt.Columns.Add("folios");
-                foreach (data.DataRow dtRow in dt.Rows)
-                {
-                    dtRow["folios"] = Convert.ToInt32(dtRow["folios"]);
-                }
-                data.DataView view = new data.DataView(dt);
-                view.Sort = "folios Desc";
-                dt.Clear();
-                dt = view.Table;
-                folio = dt.Rows[0].ToString();
+                FbDataReader reader = fbReader(instruction, conn);
+                reader.Read();
+                id = Convert.ToInt32(reader.GetValue(0));
+                closeFirebird(conn);
+                id++;
             }
             catch (Exception error)
-
             {
                 MessageBox.Show(error.Message);
             }
+            return id;
+        }
+        //When the sql querys returns string and you want to know the next number 
+        public static String oraNextFolio(string instruction, OracleConnection conn = null, string[] connectionValues = null)
+        {
+            string folio = "";
+            try
+            {
+                if (conn == null)
+                {
+                    conn = connectOracle(connectionValues);
+                }
+                folio = sortedDt(oracleData(instruction, conn));
+            }
+            catch (Exception error)
+            {
+                MessageBox.Show(error.Message);
+            }
+            return folio;
+        }
+
+        public static String fbNextFolio( string instruction, FbConnection conn = null, string[] connectionValues = null)
+        {
+            string folio = "";
+            try
+            {
+                if (conn == null)
+                {
+                    conn = connectFirebird(connectionValues);
+                }
+                folio = sortedDt(fbData(instruction, conn));
+            }
+            catch (Exception error)
+            {
+                MessageBox.Show(error.Message);
+            }
+            return folio;
+        }
+
+        public static string sortedDt (data.DataTable dt)
+        {
+            string folio = "";
+            dt.Columns.Add("folios");
+            foreach (data.DataRow dtRow in dt.Rows)
+            {
+                dtRow["folios"] = Convert.ToInt32(dtRow["folios"]);
+            }
+            data.DataView view = new data.DataView(dt);
+            view.Sort = "folios Desc";
+            dt.Clear();
+            dt = view.Table;
+            folio = dt.Rows[0].ItemArray[0].ToString();
             return folio;
         }
     }
@@ -333,11 +380,12 @@ namespace Utilities
         {
             if (dt == null)
             {
-               foreach(DataGridViewColumn column in dgv.Columns)
-               {
-                   data.DataColumn col = new data.DataColumn(column.Name);
-                   dt.Columns.Add(col);
-               }
+                dt = new data.DataTable();
+                foreach(DataGridViewColumn column in dgv.Columns)
+                {    
+                    data.DataColumn col = new data.DataColumn(column.Name);
+                    dt.Columns.Add(col);
+                }
                 foreach(DataGridViewRow row in dgv.Rows)
                 {
                     data.DataRow dr = dt.NewRow();
@@ -348,12 +396,121 @@ namespace Utilities
                     dt.Rows.Add(dr);
                 }
             }
-            for (int i = 0; i < dt.Rows.Count; i++)
+            int c = 0;
+            foreach (data.DataColumn column in dt.Columns)
+            {
+                xlWorkSheet.Cells[0][c] = column.ColumnName.ToString();
+                c++;
+            }
+            for (int i = 1; i <= dt.Rows.Count; i++)
             {
                 for (int j = 0; j < dt.Columns.Count; j++)
                 {
-                    //
+                    xlWorkSheet.Cells[i][j] = dt.Rows[i - 1].ItemArray[j].ToString();
                 }
+            }
+        }
+    }
+
+    public class config
+    {
+        public static String[] readAllSettings()
+        {
+            string[] settings = null;
+            var appSettings = conf.ConfigurationManager.AppSettings;
+            try
+            {
+                if (appSettings.Count == 0)
+                {
+                    MessageBox.Show("Archivo de configuración vacio");
+                }
+                else
+                {
+                    settings = new string[conf.ConfigurationManager.AppSettings.Count];
+                    int i = 0;
+                    foreach (var key in conf.ConfigurationManager.AppSettings.AllKeys)
+                    {
+                        settings[i] = conf.ConfigurationManager.AppSettings[key].ToString();
+                        i++;
+                    }
+                }
+            }
+            catch (Exception error)
+            {
+                MessageBox.Show(error.Message);
+            }
+            return settings;
+        }
+        
+        public static String[] readSettings(string[] keys)
+        {
+            var appSettings = conf.ConfigurationManager.AppSettings;
+            string[] settings = null;
+            try
+            {
+                if (appSettings.Count == 0)
+                {
+                    MessageBox.Show("Archivo de configuración vacio");
+                }
+                else
+                {
+                    settings = new string[keys.Length];
+                    int j = 0;
+                    foreach (var key in appSettings.AllKeys)
+                    {
+                        for (int i = 0; i < keys.Length; i++)
+                        {
+                            if (keys[i] == key.ToString())
+                            {
+                                settings[j] = appSettings[key].ToString();
+                                j++;
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception error)
+            {
+                MessageBox.Show(error.Message);
+            }
+            return settings;
+        }
+
+        public static String readSetting(string key)
+        {
+            var appSettings = conf.ConfigurationManager.AppSettings;
+            string setting = "";
+            try
+            {
+                setting = appSettings[key] ?? "";
+            }
+            catch (Exception error)
+            {
+                MessageBox.Show(error.Message);
+            }
+            return setting;
+        }
+
+        public static void addUpdateSetting(string key, string value)
+        {
+            var configFile = conf.ConfigurationManager.OpenExeConfiguration(conf.ConfigurationUserLevel.None);
+            var settigns = configFile.AppSettings.Settings;
+            try
+            {
+                if (settigns[key] == null)
+                {
+                    settigns.Add(key, value);
+                }
+                else
+                {
+                    settigns[key].Value = value;
+                }
+                configFile.Save(conf.ConfigurationSaveMode.Modified);
+                conf.ConfigurationManager.RefreshSection(configFile.AppSettings.SectionInformation.Name);
+            }
+            catch (Exception error)
+            {
+                MessageBox.Show(error.Message);
             }
         }
     }

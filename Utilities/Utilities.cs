@@ -250,22 +250,24 @@ namespace Utilities
     public class nextsNumbers : dataBase
     {
         //Get the next number by a sql query
-        public static int oraNextId (string instruction, OracleConnection conn = null, string[] connectionValues = null) 
+        public static int oraNextId (string field, string table, OracleConnection conn = null, string[] connectionValues = null, string conditions = null) 
         {
+            string instruction = "select max(" + field + ") from " + table;
+            if (conditions != null)
+                instruction += " where " + conditions;
             int id = 0;
             try
             {
                 if (conn == null)
-                {
                     conn = connectOracle(connectionValues);
-                }
                 OracleDataReader reader = oraReader(instruction, conn);
                 reader.Read();
-                id = Convert.ToInt32(reader.GetValue(0));
+                if (reader.GetValue(0) == null)
+                    id = 0;
+                else
+                    id = Convert.ToInt32(reader.GetValue(0));
                 if (connectionValues != null)
-                {
                     closeOracle(conn);
-                }
                 id++;
             }
             catch (Exception error)
@@ -275,22 +277,24 @@ namespace Utilities
             return id;
         }
 
-        public static int fbNextId(string instruction, string[] connectionValues = null, FbConnection conn = null)
+        public static int fbNextId(string field, string table, FbConnection conn = null, string[] connectionValues = null, string conditions = null)
         {
+            string instruction = "select max(" + field + ") from " + table;
+            if (conditions != null)
+                instruction += " where " + conditions;
             int id = 0;
             try
             {
                 if (conn == null)
-                {
                     conn = connectFirebird(connectionValues);
-                }
                 FbDataReader reader = fbReader(instruction, conn);
                 reader.Read();
-                id = Convert.ToInt32(reader.GetValue(0));
+                if (reader.GetValue(0) == null)
+                    id = 0;
+                else
+                    id = Convert.ToInt32(reader.GetValue(0));
                 if (connectionValues != null)
-                {
                     closeFirebird(conn);
-                }
                 id++;
             }
             catch (Exception error)
@@ -300,55 +304,68 @@ namespace Utilities
             return id;
         }
         //When the sql querys returns string and you want to know the next number 
-        public static String oraNextFolio(string instruction, OracleConnection conn = null, string[] connectionValues = null)
+        public static String oraNextFolio(string field, string table, OracleConnection conn = null, string[] connectionValues = null, string conditions = null)
         {
+            string instruction = "select " + field + " from " + table;
+            if (conditions != null)
+                instruction += " where " + conditions;
             string folio = "";
             try
             {
                 if (conn == null)
-                {
                     conn = connectOracle(connectionValues);
-                }
                 folio = sortedDt(oracleData(instruction, conn));
             }
             catch (Exception error)
             {
                 MessageBox.Show(error.Message);
             }
-            return folio;
+            return folio = (Convert.ToInt32(folio) + 1).ToString();
         }
 
-        public static String fbNextFolio( string instruction, FbConnection conn = null, string[] connectionValues = null)
+        public static String fbNextFolio(string field, string table, FbConnection conn = null, string[] connectionValues = null, string conditions = null)
         {
+            string instruction = "select " + field + " from " + table;
+            if (conditions != null)
+                instruction += " where " + conditions;
             string folio = "";
             try
             {
                 if (conn == null)
-                {
                     conn = connectFirebird(connectionValues);
-                }
                 folio = sortedDt(fbData(instruction, conn));
             }
             catch (Exception error)
             {
                 MessageBox.Show(error.Message);
             }
-            return folio;
+            return (Convert.ToInt32(folio) + 1).ToString();
         }
 
         public static string sortedDt (data.DataTable dt)
         {
             string folio = "";
-            dt.Columns.Add("folios");
-            foreach (data.DataRow dtRow in dt.Rows)
+            if (dt == null)
             {
-                dtRow["folios"] = Convert.ToInt32(dtRow["folios"]);
+                folio = "0";
             }
-            data.DataView view = new data.DataView(dt);
-            view.Sort = "folios Desc";
-            dt.Clear();
-            dt = view.Table;
-            folio = dt.Rows[0].ItemArray[0].ToString();
+            else
+            {
+                dt.Columns.Add("folios");
+                foreach (data.DataRow dtRow in dt.Rows)
+                {
+                    //if (reader.GetValue(0) == null)
+                    //    id = 0;
+                    //else
+                    //    id = Convert.ToInt32(reader.GetValue(0));
+                    dtRow["folios"] = Convert.ToInt32(dtRow["folios"]);
+                }
+                data.DataView view = new data.DataView(dt);
+                view.Sort = "folios Desc";
+                dt.Clear();
+                dt = view.Table;
+                folio = dt.Rows[0].ItemArray[0].ToString();
+            }            
             return folio;
         }
     }

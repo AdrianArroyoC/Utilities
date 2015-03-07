@@ -24,6 +24,20 @@ namespace Utilities
             return result;
         }
 
+        public static String savePath(string[] filters)
+        {
+            SaveFileDialog saveDialog = new SaveFileDialog();
+            string filter = "", path = "";
+            foreach (string i in filters)
+                filter += i + " files (*." + i + ")|*." + i +"|"; 
+            saveDialog.Filter = filter + "All files (*.*)|*.*"; //"txt files (*.txt)|*.txt|"
+            saveDialog.FilterIndex = 0;
+            saveDialog.RestoreDirectory = true;
+            if(saveDialog.ShowDialog() == DialogResult.OK)
+                path = Path.GetFullPath(saveDialog.FileName); //+ @"\\" + Path.GetFileName;
+            return path;
+        }
+
         public static String inputBox(string message, string title, string def)
         {
             string text = Microsoft.VisualBasic.Interaction.InputBox(message, title, def);
@@ -309,7 +323,7 @@ namespace Utilities
             string instruction = "select " + field + " from " + table;
             if (conditions != null)
                 instruction += " where " + conditions;
-            string folio = "";
+            int folio = 0;
             try
             {
                 if (conn == null)
@@ -320,7 +334,7 @@ namespace Utilities
             {
                 MessageBox.Show(error.Message);
             }
-            return folio = (Convert.ToInt32(folio) + 1).ToString();
+            return (folio + 1).ToString();
         }
 
         public static String fbNextFolio(string field, string table, FbConnection conn = null, string[] connectionValues = null, string conditions = null)
@@ -328,7 +342,7 @@ namespace Utilities
             string instruction = "select " + field + " from " + table;
             if (conditions != null)
                 instruction += " where " + conditions;
-            string folio = "";
+            int folio = 0;
             try
             {
                 if (conn == null)
@@ -339,32 +353,24 @@ namespace Utilities
             {
                 MessageBox.Show(error.Message);
             }
-            return (Convert.ToInt32(folio) + 1).ToString();
+            return (folio + 1).ToString();
         }
 
-        public static string sortedDt (data.DataTable dt)
+        public static int sortedDt (data.DataTable dt)
         {
-            string folio = "";
+            int folio;
             if (dt == null)
             {
-                folio = "0";
+                folio = 0;
             }
             else
             {
-                dt.Columns.Add("folios");
-                foreach (data.DataRow dtRow in dt.Rows)
-                {
-                    //if (reader.GetValue(0) == null)
-                    //    id = 0;
-                    //else
-                    //    id = Convert.ToInt32(reader.GetValue(0));
-                    dtRow["folios"] = Convert.ToInt32(dtRow["folios"]);
-                }
-                data.DataView view = new data.DataView(dt);
-                view.Sort = "folios Desc";
-                dt.Clear();
-                dt = view.Table;
-                folio = dt.Rows[0].ItemArray[0].ToString();
+                for (int i = 0; i > dt.Rows.Count; i++)
+                    dt.Rows[i].ItemArray[0] = Convert.ToInt32(dt.Rows[i].ItemArray[0]);
+                data.DataView view = dt.DefaultView;
+                view.Sort = dt.Columns[0].ColumnName + " desc";
+                dt = view.ToTable();
+                folio = Convert.ToInt32(dt.Rows[0].ItemArray[0].ToString().TrimStart('0'));
             }            
             return folio;
         }

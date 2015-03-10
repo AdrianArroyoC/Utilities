@@ -23,6 +23,20 @@ namespace Utilities
             DialogResult result = MessageBox.Show(message, title, MessageBoxButtons.YesNo, MessageBoxIcon.Exclamation, MessageBoxDefaultButton.Button2);
             return result;
         }
+        
+        public static String openPath(string[] filters)
+        {
+            OpenFileDialog openFileDialog1 = new OpenFileDialog();
+            string filter = "", path = "";
+            foreach (string i in filters)
+                filter += i + " files (*." + i + ")|*." + i + "|";
+            openFileDialog1.Filter = filter + "All files (*.*)|*.*";
+            openFileDialog1.FilterIndex = 0;
+            openFileDialog1.Multiselect = false;
+            if (openFileDialog1.ShowDialog() == DialogResult.OK)
+                path = openFileDialog1.FileName;
+            return path;
+        }
 
         public static String savePath(string[] filters)
         {
@@ -30,18 +44,17 @@ namespace Utilities
             string filter = "", path = "";
             foreach (string i in filters)
                 filter += i + " files (*." + i + ")|*." + i +"|"; 
-            saveDialog.Filter = filter + "All files (*.*)|*.*"; //"txt files (*.txt)|*.txt|"
+            saveDialog.Filter = filter + "All files (*.*)|*.*"; 
             saveDialog.FilterIndex = 0;
             saveDialog.RestoreDirectory = true;
             if(saveDialog.ShowDialog() == DialogResult.OK)
-                path = Path.GetFullPath(saveDialog.FileName); //+ @"\\" + Path.GetFileName;
+                path = Path.GetFullPath(saveDialog.FileName); 
             return path;
         }
 
         public static String inputBox(string message, string title, string def)
         {
-            string text = Microsoft.VisualBasic.Interaction.InputBox(message, title, def);
-            return text;
+            return Microsoft.VisualBasic.Interaction.InputBox(message, title, def);
         }
     }
 

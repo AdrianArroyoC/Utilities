@@ -10,7 +10,6 @@ using System.IO; //
 using System.Runtime.InteropServices; //
 using System.Diagnostics;
 using System.ComponentModel;
-using Microsoft.VisualBasic;
 using excel = Microsoft.Office.Interop.Excel;
 using conf = System.Configuration;
 
@@ -331,17 +330,23 @@ namespace Utilities
             return id;
         }
         //When the sql querys returns string and you want to know the next number 
-        public static String oraNextFolio(string field, string table, OracleConnection conn = null, string[] connectionValues = null, string conditions = null)
+        public static String oraNextFolio(string field, string field2, string table, OracleConnection conn = null, string[] connectionValues = null, string conditions = null)
         {
             string instruction = "select " + field + " from " + table;
             if (conditions != null)
                 instruction += " where " + conditions;
-            int folio = 0;
+            int folio1 = 0, folio2 = 0, folio = 0;
             try
             {
                 if (conn == null)
                     conn = connectOracle(connectionValues);
-                folio = sortedDt(oracleData(instruction, conn));
+                folio1 = sortedDt(oracleData(instruction, conn));
+                data.DataTable dt = oracleData((instruction + " and " + field2 + " = " + (oraNextId(field2, table, conn, null, conditions) - 1).ToString()), conn);
+                folio2 = Convert.ToInt32(dt.Rows[0].ItemArray[0]);
+                if (folio1 >= folio2)
+                    folio = folio1;
+                else
+                    folio = folio2;
             }
             catch (Exception error)
             {
@@ -350,17 +355,23 @@ namespace Utilities
             return (folio + 1).ToString();
         }
 
-        public static String fbNextFolio(string field, string table, FbConnection conn = null, string[] connectionValues = null, string conditions = null)
+        public static String fbNextFolio(string field1, string field2, string table, FbConnection conn = null, string[] connectionValues = null, string conditions = null)
         {
-            string instruction = "select " + field + " from " + table;
+            string instruction = "select " + field1 + " from " + table;
             if (conditions != null)
                 instruction += " where " + conditions;
-            int folio = 0;
+            int folio1 = 0, folio2 = 0, folio = 0;
             try
             {
                 if (conn == null)
                     conn = connectFirebird(connectionValues);
-                folio = sortedDt(fbData(instruction, conn));
+                folio1 = sortedDt(fbData(instruction, conn));
+                data.DataTable dt = fbData((instruction + " and " + field2 + " = " +  (fbNextId(field2, table, conn, null, conditions) - 1).ToString()), conn);
+                folio2 = Convert.ToInt32(dt.Rows[0].ItemArray[0]);
+                if (folio1 >= folio2)
+                    folio = folio1;
+                else
+                    folio = folio2;
             }
             catch (Exception error)
             {
@@ -369,7 +380,7 @@ namespace Utilities
             return (folio + 1).ToString();
         }
 
-        public static int sortedDt (data.DataTable dt)
+        public static int sortedDt(data.DataTable dt)
         {
             int folio;
             if (dt == null)
@@ -378,8 +389,8 @@ namespace Utilities
             }
             else
             {
-                for (int i = 0; i > dt.Rows.Count; i++)
-                    dt.Rows[i].ItemArray[0] = Convert.ToInt32(dt.Rows[i].ItemArray[0]);
+                for (int i = 0; i < dt.Rows.Count; i++)
+                    dt.Rows[i].ItemArray[0] = Convert.ToInt32(dt.Rows[i].ItemArray[0].ToString());
                 data.DataView view = dt.DefaultView;
                 view.Sort = dt.Columns[0].ColumnName + " desc";
                 dt = view.ToTable();
@@ -420,7 +431,7 @@ namespace Utilities
             return null;
         }
 
-        public static excel.Worksheet createWoorkSheet(excel.Application xlApp, excel.Workbook xlWorkBook, data.DataTable dt = null, string[] columns = null, DataGridView dgv = null)
+        public static excel.Worksheet createWoorkSheet(excel.Application xlApp, excel.Workbook xlWorkBook, data.DataTable dt = null, DataGridView dgv = null)
         {
             excel.Worksheet xlWorkSheet = new excel.Worksheet();
             xlWorkSheet = (excel.Worksheet)xlWorkBook.Sheets[1];
@@ -453,7 +464,7 @@ namespace Utilities
             int c = 0;
             foreach (data.DataColumn column in dt.Columns)
             {
-                xlWorkSheet.Cells[0][c] = column.ColumnName.ToString();
+                xlWorkSheet.Cells[0][c] = column.ColumnName;
                 c++;
             }
             for (int i = 1; i <= dt.Rows.Count; i++)

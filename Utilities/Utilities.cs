@@ -461,17 +461,18 @@ namespace Utilities
                     dt.Rows.Add(dr);
                 }
             }
-            int c = 0;
+            int c = 1;
             foreach (data.DataColumn column in dt.Columns)
             {
-                xlWorkSheet.Cells[0][c] = column.ColumnName;
+                xlWorkSheet.Cells[1,c] = column.ColumnName;
                 c++;
             }
-            for (int i = 1; i <= dt.Rows.Count; i++)
+            for (int i = 2; i <= dt.Rows.Count; i++)
             {
-                for (int j = 0; j < dt.Columns.Count; j++)
+                for (int j = 1; j <= dt.Columns.Count; j++)
                 {
-                    xlWorkSheet.Cells[i][j] = dt.Rows[i - 1].ItemArray[j].ToString();
+
+                    xlWorkSheet.Cells[i,j] = dt.Rows[i - 2].ItemArray[j - 1].ToString();
                 }
             }
         }

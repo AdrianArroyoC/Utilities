@@ -67,14 +67,10 @@ namespace Utilities
         {
             string sql = "";
             if (db == true)
-            {
                 sql = "Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=" + connectionValues[3] + ")(PORT=1521))(CONNECT_DATA=(SERVICE_NAME="
                     + connectionValues[2] + ")));User Id=" + connectionValues[0] + ";Password=" + connectionValues[1];
-            }
             else
-            {
                 sql = "user=" + connectionValues[0] + "; password=" + connectionValues[1] + "; database=" + connectionValues[3] + "; datasource= " + connectionValues[2] + ";";
-            }
             return sql;
         }
 
@@ -148,16 +144,12 @@ namespace Utilities
             try
             {
                 if (conn == null)
-                {
                     conn = connectOracle(connectionValues);
-                }
                 OracleDataAdapter adapter = new OracleDataAdapter();
                 adapter.SelectCommand = new OracleCommand(instruction, conn);
                 adapter.Fill(dt);
                 if (connectionValues != null)
-                {
                     closeOracle(conn);
-                }
             }
             catch (Exception error)
             {
@@ -171,15 +163,11 @@ namespace Utilities
             try
             {
                 if (conn == null)
-                {
                     conn = connectOracle(connectionValues);
-                }
                 OracleCommand cmd = new OracleCommand(instruction, conn);
                 cmd.ExecuteNonQuery();
                 if (connectionValues != null)
-                {
                     closeOracle(conn);
-                }
             }
             catch (Exception error)
             {
@@ -193,16 +181,12 @@ namespace Utilities
             try
             {
                 if (conn == null)
-                {
                     conn = connectFirebird(connectionValues);    
-                }
                 FbDataAdapter adapter = new FbDataAdapter();
                 adapter.SelectCommand = new FbCommand(instruction, conn);
                 adapter.Fill(dt);
                 if (connectionValues != null)
-                {
                     closeFirebird(conn);
-                }
             }
             catch (Exception error)
             {
@@ -216,15 +200,12 @@ namespace Utilities
             try
             {
                 if (conn == null)
-                {
+
                     conn = connectFirebird(connectionValues);
-                }
                 FbCommand cmd = new FbCommand(instruction, conn);
                 cmd.ExecuteNonQuery();
                 if (connectionValues != null)
-                {
                     closeFirebird(conn);
-                }
             }
             catch (Exception error)
             {
@@ -238,9 +219,7 @@ namespace Utilities
             try
             {
                 if (conn == null)
-                {
                     conn = connectOracle(connectionValues);
-                }
                 OracleCommand cmd = conn.CreateCommand();
                 cmd.CommandText = instruction;
                 reader = cmd.ExecuteReader();
@@ -258,9 +237,7 @@ namespace Utilities
             try
             {
                 if (conn == null)
-                {
                     conn = connectFirebird(connectionValues);
-                }
                 FbCommand cmd = conn.CreateCommand();
                 cmd.CommandText = instruction;
                 reader = cmd.ExecuteReader();
@@ -384,17 +361,23 @@ namespace Utilities
         {
             int folio;
             if (dt == null)
-            {
                 folio = 0;
-            }
             else
             {
-                for (int i = 0; i < dt.Rows.Count; i++)
-                    dt.Rows[i].ItemArray[0] = Convert.ToInt32(dt.Rows[i].ItemArray[0].ToString());
-                data.DataView view = dt.DefaultView;
-                view.Sort = dt.Columns[0].ColumnName + " desc";
-                dt = view.ToTable();
-                folio = Convert.ToInt32(dt.Rows[0].ItemArray[0].ToString().TrimStart('0'));
+                try
+                {
+                    for (int i = 0; i < dt.Rows.Count; i++)
+                        dt.Rows[i].ItemArray[0] = Convert.ToInt32(dt.Rows[i].ItemArray[0].ToString());
+                    data.DataView view = dt.DefaultView;
+                    view.Sort = dt.Columns[0].ColumnName + " desc";
+                    dt = view.ToTable();
+                    folio = Convert.ToInt32(dt.Rows[0].ItemArray[0].ToString().TrimStart('0'));
+                }
+                catch (Exception error)
+                {
+                    MessageBox.Show(error.Message);
+                    folio = 0;
+                }
             }            
             return folio;
         }
@@ -406,76 +389,146 @@ namespace Utilities
 
         public static excel.Application start()
         {
-            excel.Application xlApp = new excel.Application();
-            return xlApp;
-        }
-
-        public static bool verifyExcel(excel.Application xlApp)
-        {
-            if (xlApp == null)
+            try
             {
-                MessageBox.Show("Necesitas instalar Excel");
-                return false;
+                excel.Application xlApp = new excel.Application();
+                if (xlApp == null)
+                {
+                    MessageBox.Show("Necesitas instalar Excel");
+                    return null;
+                }
+                return xlApp;
             }
-            return true;
+            catch (Exception error)
+            {
+                MessageBox.Show(error.Message);
+                return null;
+            }
         }
 
-        public static excel.Workbook createExcel(excel.Application xlApp)
+        public static excel.Workbook createExcel()
         {
-            if (verifyExcel(xlApp))
+            excel.Application xlApp = start();
+            try
             {
                 excel.Workbook xlWorkBook = xlApp.Workbooks.Add(missVal);
                 xlApp.Visible = true;
                 return xlWorkBook;
             }
-            return null;
+            catch (Exception error)
+            {
+                MessageBox.Show(error.Message);
+                return null;
+            }
         }
 
-        public static excel.Worksheet createWoorkSheet(excel.Application xlApp, excel.Workbook xlWorkBook, data.DataTable dt = null, DataGridView dgv = null)
+        public static void readWoorkSheet(DataGridView dgv)
         {
+            string[] extensions = { "xls", "xlsx" };
+            data.DataTable dt = new data.DataTable();
+            excel.Application xlApp = start();
+            try
+            {
+                excel.Workbook xlWorkBook = xlApp.Workbooks.Open(utils.openPath(extensions), 0, true, 5, "", "", true, excel.XlPlatform.xlWindows, "\t", false, false, 0, true, 1, 0);
+                excel.Worksheet xlWorkSheet = (excel.Worksheet)xlWorkBook.Worksheets.get_Item(1);
+                excel.Range range = xlWorkSheet.UsedRange;
+                for (int i = 1; i <= range.Columns.Count; i++)
+                    dt.Columns.Add(range.Cells[1, i].Value2);
+                for (int i = 2; i <= range.Rows.Count; i++)
+                {
+                    data.DataRow dr = dt.NewRow();
+                    for (int j = 1; j <= range.Columns.Count; j++)
+                        dr[j - 1] = ((range.Cells[i, j] as excel.Range).Value2).ToString();
+                    dt.Rows.Add(dr);
+                }
+                dgv.DataSource = dt;
+                xlWorkBook.Close(false, null, null);
+                xlApp.Quit();
+                releaseObject(xlWorkSheet);
+                releaseObject(xlWorkBook);
+                releaseObject(xlApp);
+            }
+            catch (Exception error)
+            {
+                MessageBox.Show(error.Message);
+            }   
+        }
+
+        public static excel.Worksheet createWoorkSheet(data.DataTable dt = null, DataGridView dgv = null)
+        {
+            excel.Workbook xlWorkBook = createExcel();
             excel.Worksheet xlWorkSheet = new excel.Worksheet();
-            xlWorkSheet = (excel.Worksheet)xlWorkBook.Sheets[1];
-            fillExcel(xlWorkSheet, dt, dgv);
-            xlWorkSheet.Activate();
-            xlWorkBook.Saved = false;
-            return xlWorkSheet;
+            try
+            {
+                if (xlWorkBook != null)
+                {
+                    xlWorkSheet = (excel.Worksheet)xlWorkBook.Sheets[1];
+                    fillExcel(xlWorkSheet, dt, dgv);
+                    xlWorkSheet.Activate();
+                    xlWorkBook.Saved = false;
+                }
+                return xlWorkSheet;
+            }
+            catch (Exception error)
+            {
+                MessageBox.Show(error.Message);
+                return null;
+            }
         }
 
         public static void fillExcel (excel.Worksheet xlWorkSheet, data.DataTable dt = null, DataGridView dgv = null)
         {
-            if (dt == null)
+            try
             {
-                dt = new data.DataTable();
-                foreach(DataGridViewColumn column in dgv.Columns)
-                {    
-                    data.DataColumn col = new data.DataColumn(column.Name);
-                    dt.Columns.Add(col);
-                }
-                foreach(DataGridViewRow row in dgv.Rows)
+                if (dt == null)
                 {
-                    data.DataRow dr = dt.NewRow();
-                    for (int i = 0; i < dgv.ColumnCount; i++)
+                    dt = new data.DataTable();
+                    foreach (DataGridViewColumn column in dgv.Columns)
                     {
-                        dr[i] = row.Cells[i].Value.ToString();
+                        data.DataColumn col = new data.DataColumn(column.Name);
+                        dt.Columns.Add(col);
                     }
-                    dt.Rows.Add(dr);
+                    foreach (DataGridViewRow row in dgv.Rows)
+                    {
+                        data.DataRow dr = dt.NewRow();
+                        for (int i = 0; i < dgv.ColumnCount; i++)
+                            dr[i] = row.Cells[i].Value.ToString();
+                        dt.Rows.Add(dr);
+                    }
                 }
-            }
-            int c = 1;
-            foreach (data.DataColumn column in dt.Columns)
-            {
-                xlWorkSheet.Cells[1,c] = column.ColumnName;
-                c++;
-            }
-            for (int i = 2; i <= dt.Rows.Count; i++)
-            {
-                for (int j = 1; j <= dt.Columns.Count; j++)
+                int c = 1;
+                foreach (data.DataColumn column in dt.Columns)
                 {
-
-                    xlWorkSheet.Cells[i,j] = dt.Rows[i - 2].ItemArray[j - 1].ToString();
+                    xlWorkSheet.Cells[1, c] = column.ColumnName;
+                    c++;
                 }
+                for (int i = 2; i <= dt.Rows.Count; i++)
+                    for (int j = 1; j <= dt.Columns.Count; j++)
+                        xlWorkSheet.Cells[i, j] = dt.Rows[i - 2].ItemArray[j - 1].ToString();
+            }
+            catch (Exception error)
+            {
+                MessageBox.Show(error.Message);
             }
         }
+
+        private static void releaseObject(object obj)
+        {
+            try
+            {
+                System.Runtime.InteropServices.Marshal.ReleaseComObject(obj);
+                obj = null;
+            }
+            catch (Exception ex)
+            {
+                obj = null;
+                MessageBox.Show("Unable to release the Object " + ex.ToString());
+            }
+            finally
+            {
+                GC.Collect();
+            }
+        } 
     }
 
     public class config
@@ -487,9 +540,7 @@ namespace Utilities
             try
             {
                 if (appSettings.Count == 0)
-                {
                     MessageBox.Show("Archivo de configuración vacio");
-                }
                 else
                 {
                     settings = new string[conf.ConfigurationManager.AppSettings.Count];
@@ -515,24 +566,18 @@ namespace Utilities
             try
             {
                 if (appSettings.Count == 0)
-                {
                     MessageBox.Show("Archivo de configuración vacio");
-                }
                 else
                 {
                     settings = new string[keys.Length];
                     int j = 0;
                     foreach (var key in appSettings.AllKeys)
-                    {
                         for (int i = 0; i < keys.Length; i++)
-                        {
                             if (keys[i] == key.ToString())
                             {
                                 settings[j] = appSettings[key].ToString();
                                 j++;
                             }
-                        }
-                    }
                 }
             }
             catch (Exception error)
@@ -564,13 +609,9 @@ namespace Utilities
             try
             {
                 if (settigns[key] == null)
-                {
                     settigns.Add(key, value);
-                }
                 else
-                {
                     settigns[key].Value = value;
-                }
                 configFile.Save(conf.ConfigurationSaveMode.Modified);
                 conf.ConfigurationManager.RefreshSection(configFile.AppSettings.SectionInformation.Name);
             }

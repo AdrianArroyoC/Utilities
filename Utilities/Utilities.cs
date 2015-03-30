@@ -71,6 +71,8 @@ namespace Utilities
                     + connectionValues[2] + ")));User Id=" + connectionValues[0] + ";Password=" + connectionValues[1];
             else
                 sql = "user=" + connectionValues[0] + "; password=" + connectionValues[1] + "; database=" + connectionValues[3] + "; datasource= " + connectionValues[2] + ";";
+                //sql = "user=" + connectionValues[0] + "; password=" + connectionValues[1] + "; database=" + connectionValues[3] + "; datasource= " + connectionValues[2] + 
+                    //"port=3050; dialect=3; charset=NONE; role=; connection lifetime=15; pooling=false; packet Size=8192; serverType=0";
             return sql;
         }
 
@@ -422,14 +424,13 @@ namespace Utilities
             }
         }
 
-        public static void readWoorkSheet(DataGridView dgv)
+        public static void readWoorkSheet(DataGridView dgv, string path)
         {
-            string[] extensions = { "xls", "xlsx" };
             data.DataTable dt = new data.DataTable();
             excel.Application xlApp = start();
             try
             {
-                excel.Workbook xlWorkBook = xlApp.Workbooks.Open(utils.openPath(extensions), 0, true, 5, "", "", true, excel.XlPlatform.xlWindows, "\t", false, false, 0, true, 1, 0);
+                excel.Workbook xlWorkBook = xlApp.Workbooks.Open(path, 0, true, 5, "", "", true, excel.XlPlatform.xlWindows, "\t", false, false, 0, true, 1, 0);
                 excel.Worksheet xlWorkSheet = (excel.Worksheet)xlWorkBook.Worksheets.get_Item(1);
                 excel.Range range = xlWorkSheet.UsedRange;
                 for (int i = 1; i <= range.Columns.Count; i++)

@@ -257,7 +257,7 @@ namespace Utilities
         //Get the next number by a sql query
         public static int oraNextId (string field, string table, OracleConnection conn = null, string[] connectionValues = null, string conditions = null) 
         {
-            string instruction = "select max(" + field + ") from " + table;
+            string instruction = "select nvl(max(" + field + "),0) from " + table;
             if (conditions != null)
                 instruction += " where " + conditions;
             int id = 0;
@@ -267,9 +267,9 @@ namespace Utilities
                     conn = connectOracle(connectionValues);
                 OracleDataReader reader = oraReader(instruction, conn);
                 reader.Read();
-                if (reader.GetValue(0) == null)
-                    id = 0;
-                else
+                //if (reader.GetValue(0) == null)
+                    //id = 0;
+                //else
                     id = Convert.ToInt32(reader.GetValue(0));
                 if (connectionValues != null)
                     closeOracle(conn);
@@ -292,12 +292,16 @@ namespace Utilities
             {
                 if (conn == null)
                     conn = connectFirebird(connectionValues);
-                FbDataReader reader = fbReader(instruction, conn);
+                FbDataReader reader = fbReader(instruction.Replace("max", "count"), conn); //
                 reader.Read();
-                if (reader.GetValue(0) == null)
+                if (Convert.ToInt32(reader.GetValue(0)) == 0) //
                     id = 0;
-                else
+                else ////
+                {
+                    reader = fbReader(instruction, conn);
+                    reader.Read();
                     id = Convert.ToInt32(reader.GetValue(0));
+                }
                 if (connectionValues != null)
                     closeFirebird(conn);
                 id++;
@@ -311,7 +315,7 @@ namespace Utilities
         //When the sql querys returns string and you want to know the next number 
         public static String oraNextFolio(string field, string field2, string table, OracleConnection conn = null, string[] connectionValues = null, string conditions = null)
         {
-            string instruction = "select " + field + " from " + table;
+            string instruction = "select nvl(" + field + ",0) from " + table; //
             if (conditions != null)
                 instruction += " where " + conditions;
             int folio1 = 0, folio2 = 0, folio = 0;
@@ -320,8 +324,11 @@ namespace Utilities
                 if (conn == null)
                     conn = connectOracle(connectionValues);
                 folio1 = sortedDt(oracleData(instruction, conn));
-                data.DataTable dt = oracleData((instruction + " and " + field2 + " = " + (oraNextId(field2, table, conn, null, conditions) - 1).ToString()), conn);
-                folio2 = Convert.ToInt32(dt.Rows[0].ItemArray[0]);
+                if (folio1 != 0) //
+                {
+                    data.DataTable dt = oracleData((instruction + " and " + field2 + " = " + (oraNextId(field2, table, conn, null, conditions) - 1).ToString()), conn);
+                    folio2 = Convert.ToInt32(dt.Rows[0].ItemArray[0]);
+                }
                 if (folio1 >= folio2)
                     folio = folio1;
                 else
@@ -336,21 +343,31 @@ namespace Utilities
 
         public static String fbNextFolio(string field1, string field2, string table, FbConnection conn = null, string[] connectionValues = null, string conditions = null)
         {
-            string instruction = "select " + field1 + " from " + table;
+            string instruction = "select " + field1 + " from " + table, instruction2 = "select count(" + field1 + ") from " + table; //
             if (conditions != null)
+            {
                 instruction += " where " + conditions;
+                instruction2 += " where " + conditions; //
+            }
             int folio1 = 0, folio2 = 0, folio = 0;
             try
             {
                 if (conn == null)
                     conn = connectFirebird(connectionValues);
-                folio1 = sortedDt(fbData(instruction, conn));
-                data.DataTable dt = fbData((instruction + " and " + field2 + " = " +  (fbNextId(field2, table, conn, null, conditions) - 1).ToString()), conn);
-                folio2 = Convert.ToInt32(dt.Rows[0].ItemArray[0]);
-                if (folio1 >= folio2)
-                    folio = folio1;
-                else
-                    folio = folio2;
+                FbDataReader reader = fbReader(instruction2, conn); //
+                reader.Read();
+                if (Convert.ToInt32(reader.GetValue(0)) == 0) //
+                    folio = 0;
+                else //
+                {
+                    folio1 = sortedDt(fbData(instruction, conn));
+                    data.DataTable dt = fbData((instruction + " and " + field2 + " = " + (fbNextId(field2, table, conn, null, conditions) - 1).ToString()), conn);
+                    folio2 = Convert.ToInt32(dt.Rows[0].ItemArray[0]);
+                    if (folio1 >= folio2)
+                        folio = folio1;
+                    else
+                        folio = folio2;
+                }
             }
             catch (Exception error)
             {
